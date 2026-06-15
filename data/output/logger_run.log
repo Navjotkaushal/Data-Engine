@@ -1112,3 +1112,80 @@
 [11:38:13] [INFO] [pipeline] Full report -> C:\Users\Navjot Kaushal\OneDrive\projects\ML Major Projects\Data Engine\data\output\json_data\data_report.json
 [11:38:13] [INFO] [pipeline] Logs       -> data/output/logger_run.log
 [11:38:13] [INFO] [pipeline] =======================================================
+[17:37:23] [INFO] [pipeline] =======================================================
+[17:37:23] [INFO] [pipeline] DATA INTELLIGENCE LAYER - Pipeline Start
+[17:37:23] [INFO] [pipeline] =======================================================
+[17:37:23] [INFO] [pipeline] [Layer 1] Data Input
+[17:37:23] [INFO] [layers.input_layer] Dataset loaded from C:\Users\Navjot Kaushal\AppData\Local\Temp\tmp36r3y8zd.csv - shape: (4600, 18)
+[17:37:23] [INFO] [layers.input_layer] Raw file saved to C:\Users\Navjot Kaushal\OneDrive\projects\ML Major Projects\Data Engine\layers\..\data\raw\tmp36r3y8zd.csv
+[17:37:23] [DEBUG] [layers.input_layer] Columns normalized: ['date', 'price', 'bedrooms', 'bathrooms', 'sqft_living', 'sqft_lot', 'floors', 'waterfront', 'view', 'condition', 'sqft_above', 'sqft_basement', 'yr_built', 'yr_renovated', 'street', 'city', 'statezip', 'country']
+[17:37:23] [INFO] [layers.input_layer] Dataset validated - shape: (4600, 18)
+[17:37:23] [INFO] [layers.input_layer] Target column set to price
+[17:37:23] [INFO] [pipeline] [Layer 2] Schema Detection
+[17:37:23] [DEBUG] [layers.schema_detection] Datetime column: date
+[17:37:23] [DEBUG] [layers.schema_detection] Numeric-coded categorical column: bedrooms
+[17:37:23] [DEBUG] [layers.schema_detection] Numerical column: bathrooms
+[17:37:23] [DEBUG] [layers.schema_detection] Numerical column: sqft_living
+[17:37:23] [DEBUG] [layers.schema_detection] Numerical column: sqft_lot
+[17:37:23] [DEBUG] [layers.schema_detection] Numerical column: floors
+[17:37:23] [DEBUG] [layers.schema_detection] Binary column: waterfront
+[17:37:23] [DEBUG] [layers.schema_detection] Numeric-coded categorical column: view
+[17:37:23] [DEBUG] [layers.schema_detection] Numeric-coded categorical column: condition
+[17:37:23] [DEBUG] [layers.schema_detection] Numerical column: sqft_above
+[17:37:23] [DEBUG] [layers.schema_detection] Numerical column: sqft_basement
+[17:37:23] [DEBUG] [layers.schema_detection] Numerical column: yr_built
+[17:37:23] [DEBUG] [layers.schema_detection] Numerical column: yr_renovated
+[17:37:23] [DEBUG] [layers.schema_detection] ID-like column: street
+[17:37:23] [DEBUG] [layers.schema_detection] Categorical column: city
+[17:37:23] [DEBUG] [layers.schema_detection] Categorical column: statezip
+[17:37:23] [DEBUG] [layers.schema_detection] Drop constant column: country
+[17:37:23] [INFO] [layers.schema_detection] numerical       -> ['bathrooms', 'sqft_living', 'sqft_lot', 'floors', 'sqft_above', 'sqft_basement', 'yr_built', 'yr_renovated']
+[17:37:23] [INFO] [layers.schema_detection] categorical     -> ['bedrooms', 'view', 'condition', 'city', 'statezip']
+[17:37:23] [INFO] [layers.schema_detection] binary          -> ['waterfront']
+[17:37:23] [INFO] [layers.schema_detection] datetime        -> ['date']
+[17:37:23] [INFO] [layers.schema_detection] id_columns      -> ['street']
+[17:37:23] [INFO] [layers.schema_detection] drop_columns    -> ['country']
+[17:37:23] [INFO] [pipeline] [Layer 3] Data Profiling
+[17:37:23] [INFO] [layers.data_profiling] Regression target summary computed
+[17:37:23] [INFO] [layers.data_profiling] Correlation matrix computed for 8 numerical columns
+[17:37:23] [INFO] [layers.data_profiling] Profiling complete - 17 features analyzed
+[17:37:23] [INFO] [pipeline] [Layer 4] Data Quality
+[17:37:23] [INFO] [layers.data_quality] Quality check complete
+[17:37:23] [INFO] [pipeline] [Layer 5] Decision Engine
+[17:37:23] [INFO] [layers.decision_engine] Decision -> drop column: country
+[17:37:23] [INFO] [layers.decision_engine] Decision -> drop column: street
+[17:37:23] [INFO] [layers.decision_engine] Decision -> extract datetime features: date
+[17:37:23] [INFO] [layers.decision_engine] Decision -> standard scale: bathrooms
+[17:37:23] [INFO] [layers.decision_engine] Decision -> min-max scale: sqft_living
+[17:37:23] [INFO] [layers.decision_engine] Decision -> cap outliers (ratio=0.12): sqft_lot
+[17:37:23] [INFO] [layers.decision_engine] Decision -> min-max scale: sqft_lot
+[17:37:23] [INFO] [layers.decision_engine] Decision -> standard scale: floors
+[17:37:23] [INFO] [layers.decision_engine] Decision -> min-max scale: sqft_above
+[17:37:23] [INFO] [layers.decision_engine] Decision -> min-max scale: sqft_basement
+[17:37:23] [INFO] [layers.decision_engine] Decision -> standard scale: yr_built
+[17:37:23] [INFO] [layers.decision_engine] Decision -> standard scale: yr_renovated
+[17:37:23] [INFO] [layers.decision_engine] Decision -> one-hot encode: bedrooms
+[17:37:23] [INFO] [layers.decision_engine] Decision -> one-hot encode: view
+[17:37:23] [INFO] [layers.decision_engine] Decision -> one-hot encode: condition
+[17:37:23] [INFO] [layers.decision_engine] Decision -> label encode: city
+[17:37:23] [INFO] [layers.decision_engine] Decision -> label encode: statezip
+[17:37:23] [INFO] [layers.decision_engine] Decision -> label encode (binary): waterfront
+[17:37:23] [INFO] [layers.decision_engine] Decision engine complete
+[17:37:23] [INFO] [pipeline] [Layer 6] Transformer
+[17:37:23] [INFO] [layers.transformer] Dropped columns: ['country', 'street']
+[17:37:23] [INFO] [layers.transformer] Extracted datetime features from date
+[17:37:23] [INFO] [layers.transformer] Capped 404 outliers in sqft_lot
+[17:37:23] [INFO] [layers.transformer] One-hot encoded columns: ['bedrooms', 'view', 'condition']
+[17:37:23] [INFO] [layers.transformer] Label encoded: city
+[17:37:23] [INFO] [layers.transformer] Label encoded: statezip
+[17:37:23] [INFO] [layers.transformer] Label encoded: waterfront
+[17:37:23] [INFO] [layers.transformer] Applied standard scaling: ['bathrooms', 'floors', 'yr_built', 'yr_renovated']
+[17:37:23] [INFO] [layers.transformer] Applied min-max scaling: ['sqft_living', 'sqft_lot', 'sqft_above', 'sqft_basement']
+[17:37:24] [INFO] [layers.transformer] Clean CSV saved to C:\Users\Navjot Kaushal\OneDrive\projects\ML Major Projects\Data Engine\data\output\cleaned_data\tmp36r3y8zd_cleaned.csv
+[17:37:24] [INFO] [layers.transformer] Final shape: 4600 rows x 36 columns
+[17:37:24] [INFO] [pipeline] =======================================================
+[17:37:24] [INFO] [pipeline] PIPELINE COMPLETE
+[17:37:24] [INFO] [pipeline] Clean CSV  -> C:\Users\Navjot Kaushal\OneDrive\projects\ML Major Projects\Data Engine\data\output\cleaned_data\tmp36r3y8zd_cleaned.csv
+[17:37:24] [INFO] [pipeline] Full report -> C:\Users\Navjot Kaushal\OneDrive\projects\ML Major Projects\Data Engine\data\output\json_data\tmp36r3y8zd_report.json
+[17:37:24] [INFO] [pipeline] Logs       -> data/output/logger_run.log
+[17:37:24] [INFO] [pipeline] =======================================================

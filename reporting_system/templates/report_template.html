@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Engine Report - {{ job_id[:8] }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-10 pb-6 border-b border-slate-200 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Data Profiling Report</h1>
+                <p class="text-slate-500 mt-2 text-sm font-mono">Job ID: {{ job_id }}</p>
+            </div>
+            <div>
+                <a href="/download/{{ job_id }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg shadow-sm transition-all duration-200 text-sm">
+                    Download Cleaned CSV
+                </a>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Total Rows</h3>
+                <p class="text-4xl font-bold text-indigo-600">{{ metrics.row_count }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Total Columns</h3>
+                <p class="text-4xl font-bold text-indigo-600">{{ metrics.column_count }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Overall Quality</h3>
+                <p class="text-4xl font-bold text-emerald-500">Good</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h2 class="text-lg font-semibold text-slate-800">Inferred Schema</h2>
+                </div>
+                <div class="p-0">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                <th class="px-6 py-3 font-medium">Column Name</th>
+                                <th class="px-6 py-3 font-medium">Data Type</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for col, dtype in metrics.inferred_types.items() %}
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-6 py-4 text-sm font-medium text-slate-700">{{ col }}</td>
+                                <td class="px-6 py-4 text-sm text-slate-600 font-mono bg-slate-100 rounded inline-block mt-2 mb-2 ml-6">{{ dtype }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h2 class="text-lg font-semibold text-slate-800">Missing Value Ratios</h2>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        {% for col, ratio in metrics.missing_ratios.items() %}
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-slate-700">{{ col }}</span>
+                                <span class="text-sm font-medium text-slate-500">{{ (ratio * 100)|round(1) }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2.5">
+                                <div class="bg-rose-400 h-2.5 rounded-full" style="width: {{ ratio * 100 }}%"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

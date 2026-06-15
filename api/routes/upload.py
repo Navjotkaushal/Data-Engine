@@ -1,56 +1,58 @@
-# Post/ upload 
-
 """
-Accepts a CSV file, validate its size and type 
+Post / upload 
+
+Accepts a csv os Excel file and save it to data/raw/.
+Returns a file_id that you pass to POST/ run-pipeline
 """
+import shutil 
+import uuid 
+from pathlib import Path 
 
-from __future__ import annotations 
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile 
 
-from fastapi import APIRouter, Depends, UploadFile, File
-from config.settings import Settings 
-from api.dependencies import get_settings 
-from core.exceptions import FileTooLargeError, UnsupportedFileTypeError 
-from core.schemas import UploadResponse 
+router = APIRouter()
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent 
+RAW_DIR = BASE_DIR / "data" / "raw"
+RAW_DIR.mkdir(parents=True, exist_ok=True)
 
-router = APIRouter(tags=["Upload"])
+ALLOWED_EXTENSIONS = {".csv",".xlsx",".xls"}
+MAX_SIZE_MB = 50 
 
-ALLOWED_CONTENT_TYPES = {"text/csv", "application/csv", "application/vnd.ms-excel"}
-ALLOWED_EXTENSIONS = {".csv"}
-
-
-@router.post("/upload", response_model=UploadResponse, status_code=201)
-async def upload_file(
-    file: UploadFile = File(...),
-    cfg: Settings = Depends(get_settings),
-)-> UploadResponse:
+@router.post(
+    "/",
+    summary="Upload a raw data file",
+    response_description="file_id to use with /run-pipeline",
+)
+async def upload_file(request: Request, file: UploadFile= File(...)):
     
-    """
-    Upload a CSV dataset.
- 
-    - Max size is controlled by `MAX_UPLOAD_SIZE_MB` in .env (default 50 MB).
-    - Only .csv files are accepted.
-    - Returns the saved filename. Pass this to POST /run-pipeline.
-    
-    """
-    # Type Check:
-    suffix = "." + file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    suffix = Path(file.filename).suffix.lower()
     if suffix not in ALLOWED_EXTENSIONS:
-        raise UnsupportedFileTypeError(received = suffix or file.content_type)
-    
-    
-    # Size check: read in chunks to avoid loading the whole file in memory
-    dest = cfg.upload_dir / file.filename
-    size = 0 
-    max_bytes = cfg.max_upload_bytes 
-    
-    with dest.open("wb") as out:
-        while chunk := await file.read(1024 * 256): # 256 KB Chunks
-            size += len(chunk)
-            if size > max_bytes:
-                dest.unlink(missing_ok = True)
-                raise FileTooLargeError(max_mb = cfg.max_upload_size_mb)
-            out.write(chunk)
+        raise HTTPException(
+            status_code=415,
+            detail=f"Unsupported file type '{suffix}' . Accepted: {ALLOWED_EXTENSIONS}",
             
-    return UploadResponse(filename = file.filename)
-
+        )
+        
+    file_id = str(uuid.uuid4())
+    dest = RAW_DIR / f"{file_id}{suffix}"
+    
+    size = 0
+    with dest.open("wb") as out:
+        while chunk := await file.read(1024 * 1024):
+            size += len(chunk)
+            if size > MAX_SIZE_MB * 1024 * 1024:
+                dest.unlink(missing_ok=True)
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"file exceeds {MAX_SIZE_MB} MB limit.",
+                )
+            out.write(chunk)
+        
+    return {
+        "file_id": file_id,
+        "original_filename": file.filename,
+        "size_bytes": size,
+        "message": "File uploaded successfully. Use file_id with POST/ run-pipeline"
+    }
+    
