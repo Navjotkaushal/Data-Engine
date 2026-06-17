@@ -44,7 +44,7 @@ def run_pipeline(body: PipelineRequest, request: Request):
     
     # Run the pipeline in the background thread 
     thread = threading.Thread(
-        target = run_in_background,
+        target = _run_in_background,
         args=(job_id, raw_path, body.target_column, jm),
         daemon = True,
     )
