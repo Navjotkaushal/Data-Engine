@@ -84,7 +84,8 @@ def data_input_pipeline(
         # Using shutil.copy instead of df.to_csv avoids pandas round-trip changes
         # (scientific notation, float precision loss, date reformatting).
         raw_data_path = RAW_DATA_DIR / f"{path.stem}.csv"
-        shutil.copy(src=path, dst=raw_data_path)
+        if path.resolve() != raw_data_path.resolve():
+            shutil.copy(src=path, dst=raw_data_path)
         log.info("Raw file saved to %s", raw_data_path)
 
         df = normalize_columns(df)
