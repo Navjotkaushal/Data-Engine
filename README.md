@@ -2,14 +2,19 @@
 
 A modular, API-driven data preprocessing pipeline that ingests raw datasets, profiles and cleans them, and produces structured reports. Built with FastAPI, Pydantic, and a layered architecture that separates ingestion, transformation, quality checks, and reporting.
 
+**Live demo:** `<ADD YOUR RENDER/GITHUB PAGES URL HERE>`
+
+![Report screenshot](docs/report-screenshot.png)
+<!-- Replace with an actual screenshot of the HTML report (health score, null severity bars, schema table) -->
+
 ---
 
 ## What It Does
 
-1. **Accepts file uploads** via REST API
+1. **Accepts file uploads** via REST API or the included frontend (`frontend/index.html`) — drag-and-drop upload with live pipeline status
 2. **Runs a preprocessing pipeline** — schema detection → profiling → quality checks → transformation → decision engine
 3. **Outputs** cleaned CSVs, JSON summaries, HTML reports, and structured logs
-4. **Tracks job state** so you can poll the status of long-running pipelines
+4. **Tracks job state** so the frontend can poll the status of long-running pipelines
 
 ---
 
@@ -19,10 +24,10 @@ A modular, API-driven data preprocessing pipeline that ingests raw datasets, pro
 data_engine/
 ├── api/                        # FastAPI layer
 │   ├── main.py                 # App entry point
-│   ├── dependencies.py         # Shared dependencies (auth, db)
 │   └── routes/
 │       ├── upload.py           # POST /upload
 │       ├── pipeline.py         # POST /run-pipeline
+│       ├── process.py          # POST /process (one-shot upload + run)
 │       ├── report.py           # GET /report/{job_id}
 │       └── health.py           # GET /health
 │
@@ -31,9 +36,7 @@ data_engine/
 │   └── thresholds.py           # Quality thresholds
 │
 ├── core/
-│   ├── schemas.py              # Request/response Pydantic models
-│   ├── exceptions.py           # Custom HTTP exceptions
-│   └── job_manager.py         # Pipeline job state tracking
+│   └── job_manager.py          # Pipeline job state tracking
 │
 ├── layers/                     # Core pipeline logic
 │   ├── input_layer.py          # File ingestion and parsing
@@ -49,13 +52,12 @@ data_engine/
 │   └── templates/
 │       └── report_template.html
 │
+├── frontend/
+│   └── index.html              # Drag-and-drop upload UI, polls job status
+│
 ├── data/
-│   ├── raw/                    # Uploaded input files
-│   └── output/
-│       ├── cleaned/            # Cleaned CSVs
-│       ├── reports/            # HTML reports
-│       ├── json/               # JSON summaries
-│       └── logs/               # Pipeline run logs
+│   ├── raw/                    # Uploaded input files (gitignored)
+│   └── output/                 # Cleaned CSVs, JSON, HTML reports (gitignored)
 │
 ├── tests/
 │   ├── conftest.py
@@ -65,12 +67,10 @@ data_engine/
 │
 ├── utils/
 │   ├── logger.py
-│   └── sanitize.py
+│   └── sanitizer.py
 │
 ├── pipeline.py                 # Core pipeline orchestration (no FastAPI)
-├── requirements.txt
-├── .env                        # Local environment variables (not committed)
-└── Dockerfile
+└── requirements.txt
 ```
 
 ---
@@ -110,7 +110,6 @@ Input → Schema Detection → Data Profiling → Data Quality → Transformer �
 ### Prerequisites
 
 - Python 3.10+
-- Docker (optional)
 
 ### Local Installation
 
@@ -133,13 +132,6 @@ uvicorn api.main:app --reload
 ```
 
 API docs available at: `http://localhost:8000/docs`
-
-### Run with Docker
-
-```bash
-docker build -t data-engine .
-docker run -p 8000:8000 --env-file .env data-engine
-```
 
 ---
 
@@ -192,7 +184,6 @@ Outputs will be written to `data/output/`.
 | Data processing | Pandas |
 | Reporting | Jinja2 HTML templates |
 | Testing | Pytest |
-| Containerization | Docker |
 
 ---
 

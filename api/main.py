@@ -17,7 +17,7 @@ REPORTS_DIR = BASE_DIR / "data" / "output" / "reports"
 app = FastAPI(
     title= "Data Engine API",
     description=(
-        "Upload a CSV ? Excel file and recieve a cleaned dataset"
+        "Upload a CSV or Excel file and receive a cleaned dataset"
                 "plus an HTML summary report."
     ),
     version="1.0.0",
