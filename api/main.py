@@ -10,7 +10,8 @@ from core.job_manager import JobManager
 
 # Output directories 
 BASE_DIR = Path(__file__).resolve().parent.parent 
-REPORTS_DIR = BASE_DIR / "data" / "output" / "reports" 
+REPORTS_DIR = BASE_DIR / "data" / "output" / "reports"
+REPORTS_DIR.mkdir(parents=True, exist_ok=True) 
 
 # App 
 
