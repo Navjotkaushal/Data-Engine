@@ -206,20 +206,34 @@ def _quality_table(quality: dict) -> str:
     if not quality:
         return "<p style='color:var(--muted)'>No quality data.</p>"
 
-    # quality_report may be keyed by column or contain summary keys
     rows = ""
-    for col, info in quality.items():
-        if isinstance(info, dict):
-            null_pct  = info.get("null_pct",  info.get("null_ratio",  info.get("missing_pct", "—")))
-            dup_flag  = info.get("duplicates", info.get("has_duplicates", "—"))
-            issues    = info.get("issues", info.get("flags", []))
-            issues_str = ", ".join(issues) if isinstance(issues, list) else str(issues)
-        else:
-            null_pct = dup_flag = issues_str = "—"
-        rows += f"<tr><td>{col}</td><td>{null_pct}</td><td>{dup_flag}</td><td>{issues_str or '—'}</td></tr>"
+
+    dup_rows = quality.get("duplicate_rows", 0)
+    rows += f"<tr><td>Duplicate rows</td><td colspan='3'>{dup_rows}</td></tr>"
+
+    list_checks = [
+        ("Leakage columns", quality.get("leakage_cols", [])),
+        ("Constant columns", quality.get("constant_cols", [])),
+    ]
+    for label, cols in list_checks:
+        val = ", ".join(cols) if cols else "none"
+        rows += f"<tr><td>{label}</td><td colspan='3'>{val}</td></tr>"
+
+    dict_checks = [
+        ("Corrupted values (count)", quality.get("corrupted_cols", {})),
+        ("Invalid range (negative count)", quality.get("invalid_range_cols", {})),
+        ("High missing ratio", quality.get("high_missing_cols", {})),
+    ]
+    for label, per_col in dict_checks:
+        if not per_col:
+            rows += f"<tr><td>{label}</td><td colspan='3'>none</td></tr>"
+            continue
+        detail = ", ".join(f"{col} ({val})" for col, val in per_col.items())
+        rows += f"<tr><td>{label}</td><td colspan='3'>{detail}</td></tr>"
+
     return f"""
     <table>
-      <thead><tr><th>Column</th><th>Null %</th><th>Duplicates</th><th>Issues</th></tr></thead>
+      <thead><tr><th>Check</th><th colspan="3">Result</th></tr></thead>
       <tbody>{rows}</tbody>
     </table>"""
 
@@ -227,24 +241,48 @@ def _quality_table(quality: dict) -> str:
 def _stats_table(stats: dict) -> str:
     if not stats:
         return "<p style='color:var(--muted)'>No stats data.</p>"
+
+    # stats is metric-first: {"missing_count": {col: val, ...}, "skewness": {...}, ...}
+    # Pivot to column-first so each row is one column.
+    metric_keys = ["missing_count", "missing_ratio", "cardinality", "skewness", "outlier_ratio"]
+    columns = set()
+    for key in metric_keys:
+        per_col = stats.get(key)
+        if isinstance(per_col, dict):
+            columns.update(per_col.keys())
+
+    if not columns:
+        return "<p style='color:var(--muted)'>No per-column stats available.</p>"
+
     rows = ""
-    for col, info in stats.items():
-        if not isinstance(info, dict):
-            continue
-        mean   = _fmt(info.get("mean"))
-        median = _fmt(info.get("median"))
-        std    = _fmt(info.get("std"))
-        mn     = _fmt(info.get("min"))
-        mx     = _fmt(info.get("max"))
-        nulls  = _fmt(info.get("null_count", info.get("nulls")))
-        rows += f"<tr><td>{col}</td><td>{mean}</td><td>{median}</td><td>{std}</td><td>{mn}</td><td>{mx}</td><td>{nulls}</td></tr>"
-    if not rows:
-        return "<p style='color:var(--muted)'>No numeric stats available.</p>"
+    for col in sorted(columns):
+        missing_count = _fmt(stats.get("missing_count", {}).get(col))
+        missing_ratio = _fmt(stats.get("missing_ratio", {}).get(col))
+        cardinality   = _fmt(stats.get("cardinality", {}).get(col))
+        skewness      = _fmt(stats.get("skewness", {}).get(col))
+        outlier_ratio = _fmt(stats.get("outlier_ratio", {}).get(col))
+        rows += (
+            f"<tr><td>{col}</td><td>{missing_count}</td><td>{missing_ratio}</td>"
+            f"<td>{cardinality}</td><td>{skewness}</td><td>{outlier_ratio}</td></tr>"
+        )
+
+    target_block = ""
+    target_summary = stats.get("target_summary")
+    if isinstance(target_summary, dict):
+        trow = "".join(f"<tr><td>{k}</td><td>{_fmt(v)}</td></tr>" for k, v in target_summary.items())
+        target_block = f"""
+        <h3 style="margin-top:1.5rem;font-size:.95rem;color:var(--muted)">Target column summary</h3>
+        <table style="margin-top:.5rem">
+          <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+          <tbody>{trow}</tbody>
+        </table>"""
+
     return f"""
     <table>
-      <thead><tr><th>Column</th><th>Mean</th><th>Median</th><th>Std</th><th>Min</th><th>Max</th><th>Nulls</th></tr></thead>
+      <thead><tr><th>Column</th><th>Missing count</th><th>Missing ratio</th><th>Cardinality</th><th>Skewness</th><th>Outlier ratio</th></tr></thead>
       <tbody>{rows}</tbody>
-    </table>"""
+    </table>
+    {target_block}"""
 
 
 def _decisions_grid(decisions: dict) -> str:
