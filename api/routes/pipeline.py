@@ -63,7 +63,7 @@ def _run_in_background(job_id: str, raw_path: Path, target: str | None, jm):
     # Execute the pipeline and updates job state on completion / failure.abs
     try:
         from pipeline import run_pipeline as _pipeline 
-        from reporting_system.html_reporter import generate_html_report 
+        from reporting_system.html_reporter import generate_html_report, _health_score 
         
         jm.set_running(job_id)
         
@@ -77,6 +77,14 @@ def _run_in_background(job_id: str, raw_path: Path, target: str | None, jm):
         if report_dict is None:
             jm.set_failed(job_id, "Pipeline rt=eturned no output. Check your data file.")
             return 
+
+        # Health score (same formula used in the HTML report) so the
+        # frontend's QUALITY stat box has a real number to display.
+        raw_shape = report_dict.get("dataset_shape", [0, 0])
+        raw_row_count = raw_shape[0] if isinstance(raw_shape[0], int) else 0
+        report_dict["health_score"] = _health_score(
+            report_dict.get("quality_report", {}), raw_row_count
+        )
         
         # HTML report 
         dataset_name = raw_path.stem 
