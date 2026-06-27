@@ -1,4 +1,4 @@
-# FasrAPI Application entry point 
+# FastAPI Application entry point 
 
 from fastapi import FastAPI 
 from fastapi.middleware.cors import CORSMiddleware 
@@ -43,4 +43,4 @@ app.include_router(health.router, tags = ["Health"])
 app.include_router(upload.router, prefix="/upload", tags=["Upload"])
 app.include_router(pipeline.router, prefix="/run-pipeline", tags=["Pipeline"])
 app.include_router(report.router, prefix="/report", tags=["Report"])
-app.include_router(process.router, prefix="/process", tags=["One-sot"])
+app.include_router(process.router, prefix="/process", tags=["One-shot"])
