@@ -2,9 +2,9 @@
 
 A modular, API-driven data preprocessing pipeline that ingests raw datasets, profiles and cleans them, and produces structured reports. Built with FastAPI, Pydantic, and a layered architecture that separates ingestion, transformation, quality checks, and reporting.
 
-**Live demo:** `<ADD YOUR RENDER/GITHUB PAGES URL HERE>`
+**Live demo:** https://navjotkaushal.github.io/Data-Engine-frontend/
 
-![Report screenshot](docs/report-screenshot.png)
+![Report screenshot](data_report.png)
 <!-- Replace with an actual screenshot of the HTML report (health score, null severity bars, schema table) -->
 
 ---
